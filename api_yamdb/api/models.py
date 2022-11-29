@@ -23,9 +23,7 @@ class Title(models.Model):
     year = models.IntegerField()
     description = models.TextField()
     genre = models.ManyToManyField(
-        Genre, on_delete=models.SET_NULL,
-        related_name="genre", blank=True, null=True,
-        through='GenreTitle',
+        Genre, related_name="genre", blank=True, null=True,
     )
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
@@ -34,11 +32,3 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class GenreTitle(models.Model):
-    genre = models.ForeignKey(Genre, on_delete=models.SET_NULL)
-    title = models.ForeignKey(Title, on_delete=models.SET_NULL)
-
-    def __str__(self):
-        return f'{self.genre} {self.title}'
