@@ -80,3 +80,27 @@ class Review(models.Model):
         return f'Отзыв от {self.author} на {self.title}'
 
 
+class Comment(models.Model):
+    text = models.TextField(verbose_name='Комментарий')
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Отзыв',
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор',
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+    )
+    class Meta:
+        verbose_name='Комментарий',
+        verbose_name_plural='Комментарии'
+
+    def __str__(self):
+        return f'Комментарий {self.author} к {self.review}'
