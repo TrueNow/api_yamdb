@@ -56,7 +56,7 @@ class Review(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='reviews')
-    scope = models.PositiveSmallIntegerField(
+    score = models.PositiveSmallIntegerField(
         verbose_name = 'Оценка',
         default=5,
         validators=[
@@ -70,6 +70,8 @@ class Review(models.Model):
         auto_now_add=True,
     )
     class Meta:
+        verbose_name='Отзыв',
+        verbose_name_plural='Отзывы'
         constraints = [
             models.UniqueConstraint(
                 fields=["title", "author"], name="unique_review"
