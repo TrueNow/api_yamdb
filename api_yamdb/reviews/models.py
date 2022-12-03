@@ -29,12 +29,11 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    slug = models.SlugField(unique=True)
     name = models.CharField(max_length=256)
     year = models.IntegerField()
-    description = models.TextField()
+    description = models.TextField(blank=True)
     genre = models.ManyToManyField(
-        Genre, related_name="genre", blank=True, null=True,
+        Genre, related_name="genre", blank=True,
     )
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
@@ -43,6 +42,7 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Review(models.Model):
     title = models.ForeignKey(
@@ -57,7 +57,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews')
     score = models.PositiveSmallIntegerField(
-        verbose_name = 'Оценка',
+        verbose_name='Оценка',
         default=5,
         validators=[
             MinValueValidator(1, message='Минимальная оценка 1'),
@@ -69,6 +69,7 @@ class Review(models.Model):
         'Дата публикации',
         auto_now_add=True,
     )
+
     class Meta:
         verbose_name='Отзыв',
         verbose_name_plural='Отзывы'
@@ -100,9 +101,10 @@ class Comment(models.Model):
         'Дата публикации',
         auto_now_add=True,
     )
+
     class Meta:
-        verbose_name='Комментарий',
-        verbose_name_plural='Комментарии'
+        verbose_name = 'Комментарий',
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
         return f'Комментарий {self.author} к {self.review}'
