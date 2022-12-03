@@ -149,3 +149,7 @@ dmypy.json
 media/
 
 *.csv
+api_yamdb/static/data/comments.csv
+api_yamdb/static/data/review.csv
+api_yamdb/static/data/titles.csv
+api_yamdb/static/data/users.csv
