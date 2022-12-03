@@ -1,13 +1,13 @@
 from django.urls import include, path 
 from rest_framework.routers import DefaultRouter
-
+from rest_framework.authtoken import views
 from .views import CommentViewSet, ReviewViewSet
+
 
 app_name = 'api'
 
+
 router_v1 = DefaultRouter()
-
-
 router_v1.register(
     r'title/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='review')
 router_v1.register(

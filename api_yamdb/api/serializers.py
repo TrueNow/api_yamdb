@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from reviews.models import Review, Title, Comment
+from reviews.models import Review, Title, Comment, User
 from rest_framework import serializers
 
 User = get_user_model()
@@ -10,6 +10,17 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True,
     )
+
+    def validate(self, data):
+        if self.context['request'].method == 'PATCH':
+            return data
+        title = self.context['view'].kwargs['title_id']
+        author = self.context['request'].user
+        if Review.objects.filter(author=author, title__id=title).exists():
+            raise serializers.ValidationError(
+                'Ранее вы уже оставляли отзыв на данное произведение!')
+        return data
+
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
