@@ -43,6 +43,7 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
+
 class Review(models.Model):
     title = models.ForeignKey(
         Title,
@@ -55,8 +56,8 @@ class Review(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='reviews')
-    scope = models.PositiveSmallIntegerField(
-        verbose_name = 'Оценка',
+    score = models.PositiveSmallIntegerField(
+        verbose_name='Оценка',
         default=5,
         validators=[
             MinValueValidator(1, message='Минимальная оценка 1'),
@@ -68,6 +69,7 @@ class Review(models.Model):
         'Дата публикации',
         auto_now_add=True,
     )
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -97,6 +99,7 @@ class Comment(models.Model):
         'Дата публикации',
         auto_now_add=True,
     )
+
     class Meta:
         verbose_name='Комментарий',
         verbose_name_plural='Комментарии'
