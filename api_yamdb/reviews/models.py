@@ -29,7 +29,6 @@ class Category(models.Model):
 
 
 class Title(models.Model):
-    slug = models.SlugField(unique=True)
     name = models.CharField(max_length=256)
     year = models.IntegerField()
     description = models.TextField()
