@@ -64,27 +64,14 @@ class SignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'username',)
 
-    def validate(self, data):
+    def validate_username(self, value):
         error_names = ('me',)
-        username = data.get('username')
+        username = value
         if username in error_names:
             raise serializers.ValidationError(
                 f'Нельзя использовать имя {username}'
             )
-        return data
-
-
-class JWTUserSerializer(serializers.ModelSerializer):
-    username = serializers.SlugRelatedField(
-        queryset=User.objects.all(),
-        slug_field='username',
-        required=True
-    )
-    token = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = User
-        fields = ('username', 'confirmation_code', 'token')
+        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):

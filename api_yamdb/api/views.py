@@ -12,7 +12,7 @@ from reviews.models import Category, Genre, Title, User, Comment, Review
 
 from .serializers import (
     ReviewSerializer, CommentSerializer, TitleSerializer, GenreSerializer,
-    CategorySerializer, SignUpSerializer, UserSerializer, JWTUserSerializer
+    CategorySerializer, SignUpSerializer, UserSerializer
 )
 from .utils import send_mail
 
@@ -55,50 +55,6 @@ class CategoryViewSet(mixins.CreateModelMixin,
     search_fields = ('name',)
     serializer_class = CategorySerializer
 
-class SignUpViewSet(mixins.CreateModelMixin,
-                    viewsets.GenericViewSet):
-    queryset = User.objects.all()
-    serializer_class = SignUpSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=False)
-        if not self.queryset.filter(**serializer.validated_data).exists():
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-        username = request.data.get('username')
-        email = request.data.get('email')
-        user = self.queryset.get(username=username, email=email)
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(user.email, confirmation_code)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_200_OK, headers=headers
-        )
-
-
-class JWTUserViewSet(mixins.CreateModelMixin,
-                     viewsets.GenericViewSet):
-    queryset = User.objects.all()
-    serializer_class = JWTUserSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        headers = self.get_success_headers(serializer.data)
-
-        username = serializer.data.get('username')
-        confirmation_code = request.data.get('confirmation_code')
-
-        user = get_object_or_404(User, username=username)
-        if not default_token_generator.check_token(user, confirmation_code):
-            return Response('Incorrect pair: username - confirmation_code',
-                            status=status.HTTP_400_BAD_REQUEST)
-        token = AccessToken.for_user(user)
-        return Response(serializer.data, status=status.HTTP_200_OK,
-                        headers=headers)
-
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -136,3 +92,49 @@ class CommentViewSet(viewsets.ModelViewSet):
             pk=self.kwargs.get('review_id')
         )
         serializer.save(author=self.request.user, review=review)
+
+
+class SignUpViewSet(mixins.CreateModelMixin,
+                    viewsets.GenericViewSet):
+    queryset = User.objects.all()
+    serializer_class = SignUpSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=False)
+
+        username = request.data.get('username')
+        email = request.data.get('email')
+        if not self.queryset.filter(username=username, email=email).exists():
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+        user = get_object_or_404(User, username=username, email=email)
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(user.email, confirmation_code)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_200_OK, headers=headers
+        )
+
+
+class JWTUserViewSet(mixins.CreateModelMixin,
+                     viewsets.GenericViewSet):
+    queryset = User.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        username = request.data.get('username')
+        confirmation_code = request.data.get('confirmation_code')
+
+        if username is None or confirmation_code is None:
+            return Response(
+                'Incorrect input', status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = get_object_or_404(User, username=username)
+        if not default_token_generator.check_token(user, confirmation_code):
+            return Response(
+                'Incorrect pair: username - confirmation_code',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        token = AccessToken.for_user(user)
+        return Response({'token': str(token)}, status=status.HTTP_200_OK)
