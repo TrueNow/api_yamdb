@@ -1,6 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
-from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from rest_framework import mixins
 from rest_framework import viewsets
@@ -9,9 +9,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
-from reviews.models import Category, Genre, Title, User
+from reviews.models import Category, Genre, Title, User, Comment, Review
 
-from .serializers import TitleSerializer
+from .serializers import ReviewSerializer, CommentSerializer, TitleSerializer
 from .validators import validate_email, validate_username
 from .utils import send_mail
 
@@ -102,3 +102,35 @@ def user_token_view(request):
         return Response('Incorrect pair: username - confirmation_code')
     token = AccessToken.for_user(user)
     return Response({'token': str(token)})
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+
+    def get_queryset(self):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        review = get_object_or_404(
+            Review.objects.filter(title_id=title_id),
+            pk=self.kwargs.get('review_id')
+        )
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        review = get_object_or_404(
+            Review.objects.filter(title_id=title_id),
+            pk=self.kwargs.get('review_id')
+        )
+        serializer.save(author=self.request.user, review=review)
