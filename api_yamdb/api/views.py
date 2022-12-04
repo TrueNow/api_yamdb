@@ -1,4 +1,3 @@
-from .serializers import ReviewSerializer, CommentSerializer
 from reviews.models import Comment, Review, User, Title
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import api_view
@@ -9,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
 
+from .serializers import ReviewSerializer, CommentSerializer
 from .validators import validate_email, validate_username
 from .utils import send_mail
 
@@ -68,7 +68,6 @@ def user_token_view(request):
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
