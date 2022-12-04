@@ -1,5 +1,4 @@
 import datetime
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from reviews.models import Review, Title, Comment, User, Category, Genre
 
@@ -25,7 +24,7 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = ('category', 'genre', 'name', 'year')
 
     def validate_year(self, value):
-        today = datetime.today().year
+        today = datetime.datetime.today().year
         if not (today >= value):
             raise serializers.ValidationError('Not valid year!')
         return value
@@ -49,7 +48,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'scope', 'pub_date')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
 
 class UserSerializer(serializers.ModelSerializer):
