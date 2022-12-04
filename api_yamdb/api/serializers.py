@@ -45,7 +45,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Ранее вы уже оставляли отзыв на данное произведение!')
         return data
-        
+
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
@@ -53,8 +53,38 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('email', 'username', 'role')
         model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'username',)
+
+    def validate(self, data):
+        error_names = ('me',)
+        username = data.get('username')
+        if username in error_names:
+            raise serializers.ValidationError(
+                f'Нельзя использовать имя {username}'
+            )
+        return data
+
+
+class JWTUserSerializer(serializers.ModelSerializer):
+    username = serializers.SlugRelatedField(
+        queryset=User.objects.all(),
+        slug_field='username',
+        required=True
+    )
+    token = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code', 'token')
 
 
 class CommentSerializer(serializers.ModelSerializer):
