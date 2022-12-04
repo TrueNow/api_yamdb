@@ -45,7 +45,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Ранее вы уже оставляли отзыв на данное произведение!')
         return data
-        
+
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
@@ -53,8 +53,25 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('email', 'username', 'role')
         model = User
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
+
+
+class SignUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'username',)
+
+    def validate_username(self, value):
+        error_names = ('me',)
+        username = value
+        if username in error_names:
+            raise serializers.ValidationError(
+                f'Нельзя использовать имя {username}'
+            )
+        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):
