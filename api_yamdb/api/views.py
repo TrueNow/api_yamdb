@@ -17,6 +17,7 @@ from reviews.models import (
 from .permissions import (
     IsUser, IsModerator, IsAdmin, IsAdminUserOrReadOnly, IsAuthor
 )
+from .pagination import CustomPagination
 from .serializers import (
     ReviewSerializer, CommentSerializer, TitleSerializer, GenreSerializer,
     CategorySerializer, SignUpSerializer, UserSerializer
@@ -30,6 +31,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('name', 'year',)
     permission_classes = (IsAdminUserOrReadOnly,)
+    pagination_class = CustomPagination
 
 
 class GenreViewSet(mixins.CreateModelMixin,
@@ -42,6 +44,7 @@ class GenreViewSet(mixins.CreateModelMixin,
     search_fields = ('name',)
     serializer_class = GenreSerializer
     permission_classes = (IsAdminUserOrReadOnly,)
+    pagination_class = CustomPagination
 
 
 class CategoryViewSet(mixins.CreateModelMixin,
@@ -54,40 +57,14 @@ class CategoryViewSet(mixins.CreateModelMixin,
     search_fields = ('name',)
     serializer_class = CategorySerializer
     permission_classes = (IsAdminUserOrReadOnly,)
+    pagination_class = CustomPagination
 
-    def get_object(self):
-        """
-        Returns the object the view is displaying.
-
-        You may want to override this if you need to provide non-standard
-        queryset lookups.  Eg if objects are referenced using multiple
-        keyword arguments in the url conf.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-
-        # Perform the lookup filtering.
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-
-        assert lookup_url_kwarg in self.kwargs, (
-                'Expected view %s to be called with a URL keyword argument '
-                'named "%s". Fix your URL conf, or set the `.lookup_field` '
-                'attribute on the view correctly.' %
-                (self.__class__.__name__, lookup_url_kwarg)
-        )
-
-        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        print(filter_kwargs)
-        obj = get_object_or_404(queryset, **filter_kwargs)
-
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-
-        return obj
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = IsAdminUserOrReadOnly, IsAuthor
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -101,6 +78,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = IsAdminUserOrReadOnly, IsAuthor
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
