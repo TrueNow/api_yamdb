@@ -1,24 +1,35 @@
+import datetime
+
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+USER = 'user'
+MODERATOR = 'moderator'
+ADMIN = 'admin'
+
 
 class User(AbstractUser):
     ROLES = (
-        ('user', 'user'),
-        ('moderator', 'moderator'),
-        ('admin', 'admin'),
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Администратор'),
     )
 
-    username = models.CharField('Никнейм', max_length=150, unique=True)
-    email = models.EmailField('Почта', unique=True)
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(unique=True)
     role = models.CharField(
-        'Роль', max_length=20,
-        choices=ROLES, default='user'
+        'Роль', max_length=20, choices=ROLES, default=USER
     )
     bio = models.TextField('О себе', blank=True)
-    first_name = models.CharField('Имя', max_length=150, blank=True)
-    last_name = models.CharField('Фамилия', max_length=150, blank=True)
+
+    @property
+    def is_admin(self):
+        return bool(self.role == ADMIN or self.is_staff)
+
+    @property
+    def is_moderator(self):
+        return bool(self.role == MODERATOR)
 
 
 class Genre(models.Model):
@@ -80,11 +91,11 @@ class Review(models.Model):
     )
 
     class Meta:
-        verbose_name='Отзыв',
-        verbose_name_plural='Отзывы'
+        verbose_name = 'Отзыв',
+        verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
-                fields=["title", "author"], name="unique_review"
+                fields=['title', 'author'], name='unique_review'
             ),
         ]
 
