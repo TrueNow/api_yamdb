@@ -16,7 +16,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    year = serializers.IntegerField(required=True)
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
 
