@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Genre, Title, User, Comment, Review
-
+from .pagination import CustomPagination
 from .serializers import (
     ReviewSerializer, CommentSerializer, TitleSerializer, GenreSerializer,
     CategorySerializer, SignUpSerializer, UserSerializer
@@ -20,9 +20,9 @@ from .utils import send_mail
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend, )
     filterset_fields = ('name', 'year',)
+    pagination_class = CustomPagination
 
     def perform_create(self, serializer):
         category_slug = self.request.data['category']
@@ -44,6 +44,7 @@ class GenreViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
     serializer_class = GenreSerializer
+    pagination_class = CustomPagination
 
 
 class CategoryViewSet(mixins.CreateModelMixin,
@@ -54,16 +55,20 @@ class CategoryViewSet(mixins.CreateModelMixin,
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
     serializer_class = CategorySerializer
+    pagination_class = CustomPagination
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = (filters.SearchFilter, )
     search_fields = ('username',)
+    pagination_class = CustomPagination
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -76,6 +81,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    pagination_class = CustomPagination
 
     def __get_review(self):
         return get_object_or_404(Review, id=self.kwargs["review_id"])
