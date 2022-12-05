@@ -77,22 +77,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
 
+    def __get_review(self):
+        return get_object_or_404(Review, id=self.kwargs["review_id"])
+
     def get_queryset(self):
-        title_id = self.kwargs.get('title_id')
-        review = get_object_or_404(
-            Review.objects.filter(title_id=title_id),
-            pk=self.kwargs.get('review_id')
-        )
-        return review.comments.all()
+        return self.__get_review().comments.all().select_related("author")
 
     def perform_create(self, serializer):
-        title_id = self.kwargs.get('title_id')
-        review = get_object_or_404(
-            Review.objects.filter(title_id=title_id),
-            pk=self.kwargs.get('review_id')
-        )
-        serializer.save(author=self.request.user, review=review)
-
+        serializer.save(author=self.request.user, review=self.__get_review())
 
 class SignUpViewSet(mixins.CreateModelMixin,
                     viewsets.GenericViewSet):
