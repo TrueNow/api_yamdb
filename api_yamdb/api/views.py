@@ -82,6 +82,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     pagination_class = CustomPagination
+    # permission_classes = ()
 
     def __get_review(self):
         return get_object_or_404(Review, id=self.kwargs["review_id"])
