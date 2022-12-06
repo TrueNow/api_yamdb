@@ -1,38 +1,34 @@
-from django.contrib.auth import get_user_model
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
-from reviews.models import USER, MODERATOR, ADMIN
 
-User = get_user_model()
-
-
-class IsBase(BasePermission):
-    _allowed_roles = ('',)
-
-    def has_permission(self, request, view):
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and request.user.role in self._allowed_roles
-        )
-
-
-class IsAdmin(IsBase):
-    _allowed_roles = (ADMIN,)
+class IsAdmin(BasePermission):
     def has_permission(self, request, view):
         return bool(
             request.user.is_authenticated
-            and request.user.role in self._allowed_roles
-            or request.user.is_staff
+            and (
+                request.user.is_admin
+                or request.user.is_staff
+            )
         )
 
 
-class IsModerator(IsBase):
-    _allowed_roles = (MODERATOR,)
+class IsStaffOrAuthorOrReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        return bool(
+            request.method in SAFE_METHODS or
+            request.user.is_authenticated
+        )
 
-
-class IsUser(IsBase):
-    _allowed_roles = (USER,)
+    def has_object_permission(self, request, view, obj):
+        return bool(
+            request.method in SAFE_METHODS
+            or request.user.is_authenticated
+            and (
+                request.user.is_admin
+                or request.user.is_moderator
+                or obj.author == request.user
+            )
+        )
 
 
 class IsAdminUserOrReadOnly(BasePermission):
@@ -40,14 +36,5 @@ class IsAdminUserOrReadOnly(BasePermission):
         return bool(
             request.method in SAFE_METHODS or
             request.user.is_authenticated and
-            request.user.role == ADMIN
-        )
-
-
-class IsAuthor(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and obj.author == request.user
+            request.user.is_admin
         )
