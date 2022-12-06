@@ -19,7 +19,7 @@ Cоздан в команде из трёх человек с использов
 - система управления версиями git
 
 ## Как запустить проект:
-1) Клонируйте репозитроий с проектом:
+1) Клонируйте репозиторий с проектом:
 ```
 git clone https://github.com/s3r3ga/api_yamdb
 ```
@@ -29,23 +29,19 @@ python3 -m venv venv
 . venv/bin/activate
 pip install -r requirements.txt
 ```
-3) Создайте миграции:
-```
-python manage.py makemigrations
-```
-4) Выполните миграции:
+3) Выполните миграции:
 ```
 python manage.py migrate
 ```
-5) Cоздайте суперпользователя:
+4) Cоздайте суперпользователя:
 ```
 python manage.py createsuperuser
 ```
-6) Загрузите тестовые данные:
+5) При необходимости можете загрузить тестовые данные:
 ```
 python manage.py filldatabase
 ```
-7) Запустите сервер:
+6) Запустите сервер:
 ```
 python manage.py runserver
 ```
