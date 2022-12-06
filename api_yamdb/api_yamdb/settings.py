@@ -114,7 +114,7 @@ AUTH_USER_MODEL = 'reviews.User'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'api_yamdb.api.pagination.CustomPagination',
+    'DEFAULT_PAGINATION_CLASS': 'api.paginators.CustomPagination',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
