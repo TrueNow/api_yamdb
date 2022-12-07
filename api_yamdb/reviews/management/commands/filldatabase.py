@@ -56,9 +56,6 @@ class Command(BaseCommand):
 
                 except sqlite3.IntegrityError:
                     msg = 'Таблица {} уже заполнена!'.format(full_table_name)
-                    self.stdout.write(
-                        self.style.ERROR(msg)
-                    )
 
                 except sqlite3.OperationalError:
                     sql_request = (
