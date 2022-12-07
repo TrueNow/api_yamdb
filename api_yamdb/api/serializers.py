@@ -80,7 +80,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if self.context.get('request').method == 'PATCH':
             return data
-        title = self.context.get('view').kwargs['title_id']
+        title = self.context.get('view').kwargs.get('title_id')
         author = self.context.get('request').user
         if Review.objects.filter(author=author, title__id=title).exists():
             raise serializers.ValidationError(
