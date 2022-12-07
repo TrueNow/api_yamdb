@@ -126,9 +126,11 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
         return response.Response(serializer.data)
 
+
 class OnlyCreateViewSet(mixins.CreateModelMixin,
                         viewsets.GenericViewSet):
     pass
+
 
 class SignUpViewSet(OnlyCreateViewSet):
     queryset = User.objects.all()
@@ -172,4 +174,7 @@ class JWTUserViewSet(OnlyCreateViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         token = AccessToken.for_user(user)
-        return response.Response({'token': str(token)}, status=status.HTTP_200_OK)
+        return response.Response(
+            {'token': str(token)},
+            status=status.HTTP_200_OK
+        )
