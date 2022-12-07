@@ -8,9 +8,11 @@ def send_mail(to_email, confirmation_code):
         'Спасибо за регистрацию на нашем сайте!\n'
         'Аутентификация на сайте происходит с помощью JWT-токена.\n'
         'Для получения токена отправьте запрос на '
-        'http://127.0.0.1:8000/api/v1/auth/token/ с данными email и confirmation_code.\n'
-        f'Ваш confirmation_code: {confirmation_code}. Никому не сообщайте этот код!'
-    )
+        'http://127.0.0.1:8000/api/v1/auth/token/ '
+        'с данными email и confirmation_code.\n'
+        'Ваш confirmation_code: {}. '
+        'Никому не сообщайте этот код!'
+    ).format(confirmation_code)
     mail.send_mail(
         subject=subject,
         message=message,

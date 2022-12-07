@@ -17,53 +17,56 @@ class Command(BaseCommand):
         return result
 
     def handle(self, *args, **options):
-        DB_FOLDER = os.getcwd()
-        DB_NAME = 'db.sqlite3'
-        APP_NAME = 'reviews'
+        app_name = 'reviews'
 
-        CSV_FOLDER = os.path.join(DB_FOLDER, 'static', 'data')
-        DB_FILE = os.path.join(DB_FOLDER, DB_NAME)
+        db_folder = os.getcwd()
+        db_name = 'db.sqlite3'
+        csv_folder = os.path.join(db_folder, 'static', 'data')
 
-        csv_files = self.filter_files(CSV_FOLDER, endswith='.csv')
+        db_file = os.path.join(db_folder, db_name)
+        csv_files = self.filter_files(csv_folder, endswith='.csv')
 
-        con = sqlite3.connect(DB_FILE)
+        con = sqlite3.connect(db_file)
         cur = con.cursor()
 
         for csv_file in csv_files:
             with open(csv_file, 'r', encoding='utf-8') as f:
                 dr = csv.DictReader(f)
 
-                TABLE_NAME, _ = os.path.basename(csv_file).split('.')
+                table_name, _ = os.path.basename(csv_file).split('.')
+                full_table_name = f'{app_name}_{table_name}'
+
                 fieldnames_string = ', '.join(dr.fieldnames)
-                questions_string = ', '.join(
-                    ['?'] * len(dr.fieldnames)
-                )
+                questions_string = ', '.join(['?'] * len(dr.fieldnames))
+
                 data = [tuple(row.values()) for row in dr]
 
                 try:
-                    cur.executemany(
-                        f"INSERT INTO {APP_NAME}_{TABLE_NAME}({fieldnames_string}) VALUES ({questions_string});",
-                        data
-                    )
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f'Таблица {APP_NAME}_{TABLE_NAME} успешно заполнена!'
+                    sql_request = (
+                        "INSERT INTO {}({}) VALUES ({});".format(
+                            full_table_name,
+                            fieldnames_string,
+                            questions_string
                         )
                     )
-                except sqlite3.IntegrityError as e:
-                    self.stdout.write(
-                        self.style.ERROR(
-                            f'Таблица {APP_NAME}_{TABLE_NAME} уже заполнена!'
-                        )
+                    cur.executemany(sql_request, data)
+                    msg = 'Таблица {} успешно заполнена!'.format(
+                        full_table_name
                     )
+
+                except sqlite3.IntegrityError:
+                    msg = 'Таблица {} уже заполнена!'.format(full_table_name)
+
                 except sqlite3.OperationalError:
-                    cur.execute(
-                        f"CREATE TABLE {APP_NAME}_{TABLE_NAME}({fieldnames_string})"
-                    )
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f'Таблица {APP_NAME}_{TABLE_NAME} создана.'
+                    sql_request = (
+                        "CREATE TABLE {}({})".format(
+                            full_table_name,
+                            fieldnames_string
                         )
                     )
+                    cur.execute(sql_request)
+                    msg = 'Таблица {} создана.'.format(full_table_name)
+
+                self.stdout.write(self.style.SUCCESS(msg))
                 con.commit()
         con.close()
