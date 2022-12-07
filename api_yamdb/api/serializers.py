@@ -78,13 +78,18 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
-        if self.context.get('request').method == 'PATCH':
+        request = self.context.get('request')
+        if request.method == 'PATCH':
             return data
-        title = self.context.get('view').kwargs.get('title_id')
-        author = self.context.get('request').user
-        if Review.objects.filter(author=author, title__id=title).exists():
+        view = self.context.get('view')
+        title_id = view.kwargs.get('title_id')
+        if Review.objects.filter(
+                author=request.user,
+                title__id=title_id
+        ).exists():
             raise serializers.ValidationError(
-                'Ранее вы уже оставляли отзыв на данное произведение!')
+                'Ранее вы уже оставляли отзыв на данное произведение!'
+            )
         return data
 
 
