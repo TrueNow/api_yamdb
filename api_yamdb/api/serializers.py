@@ -1,7 +1,10 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import (
     Category, Comment, Genre, Review, Title,
@@ -120,3 +123,24 @@ class SignUpSerializer(serializers.ModelSerializer):
                 f"Нельзя использовать имя '{username}'!"
             )
         return username
+
+
+class JWTUserSerializer(serializers.ModelSerializer):
+    confirmation_code = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'confirmation_code')
+
+    def validate(self, attrs):
+        user = get_object_or_404(
+            User,
+            username=attrs.get('username')
+        )
+        if not default_token_generator.check_token(
+                user, attrs.get('confirmation_code')
+        ):
+            raise serializers.ValidationError(self.errors)
+        token = AccessToken.for_user(user)
+        attrs['token'] = token
+        return attrs

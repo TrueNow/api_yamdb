@@ -4,7 +4,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
-    decorators, filters, permissions, response, status, viewsets
+    decorators, filters, permissions, response, status, viewsets, mixins
 )
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import (
@@ -20,7 +20,7 @@ from .permissions import (
 from .serializers import (
     ReviewSerializer, CommentSerializer, GenreSerializer,
     CategorySerializer, SignUpSerializer, UserSerializer, TitleReadSerializer,
-    TitleWriteSerializer
+    TitleWriteSerializer, JWTUserSerializer
 )
 from .utils import send_mail
 
@@ -129,44 +129,32 @@ class SignUpViewSet(OnlyCreateViewSet):
     serializer_class = SignUpSerializer
 
     def create(self, request, *args, **kwargs):
-        data = {
-            'username': request.data.get('username'),
-            'email': request.data.get('email')
-        }
-        serializer = self.get_serializer(data=data)
-        if not self.queryset.filter(**data).exists():
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-
-        user = get_object_or_404(User, **data)
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(user.email, confirmation_code)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return response.Response(
-            serializer.data, status=status.HTTP_200_OK, headers=headers
+            serializer.data,
+            status=status.HTTP_200_OK,
+            headers=headers
         )
+
+    def perform_create(self, serializer):
+        user = serializer.save()
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(user.email, confirmation_code)
 
 
 class JWTUserViewSet(OnlyCreateViewSet):
     queryset = User.objects.all()
+    serializer_class = JWTUserSerializer
 
     def create(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        confirmation_code = request.data.get('confirmation_code')
-
-        if username is None or confirmation_code is None:
-            return response.Response(
-                'Incorrect input', status=status.HTTP_400_BAD_REQUEST
-            )
-
-        user = get_object_or_404(User, username=username)
-        if not default_token_generator.check_token(user, confirmation_code):
-            return response.Response(
-                'Incorrect pair: username - confirmation_code',
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        token = AccessToken.for_user(user)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        headers = self.get_success_headers(serializer.data)
         return response.Response(
-            {'token': str(token)},
-            status=status.HTTP_200_OK
+            serializer.data,
+            status=status.HTTP_200_OK,
+            headers=headers
         )
