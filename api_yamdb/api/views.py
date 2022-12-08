@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -20,7 +21,7 @@ from .serializers import (
     CategorySerializer, SignUpSerializer, UserSerializer, TitleReadSerializer,
     TitleWriteSerializer
 )
-from .utils import send_mail
+from .utils import send_confirmation_code
 
 
 class CLDViewSet(mixins.CreateModelMixin,
@@ -148,7 +149,8 @@ class SignUpViewSet(OnlyCreateViewSet):
 
         user = get_object_or_404(User, **data)
         confirmation_code = default_token_generator.make_token(user)
-        send_mail(user.email, confirmation_code)
+        url = get_current_site(request)
+        send_confirmation_code(user.email, confirmation_code, url)
         headers = self.get_success_headers(serializer.data)
         return response.Response(
             serializer.data, status=status.HTTP_200_OK, headers=headers
