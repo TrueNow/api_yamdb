@@ -116,3 +116,7 @@ class SignUpSerializer(serializers.ModelSerializer):
                 f"Нельзя использовать имя '{username}'!"
             )
         return username
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    confirmation_code = serializers.CharField()

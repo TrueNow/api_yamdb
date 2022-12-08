@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import (
     Category, Genre, Title, User, Review
 )
-
+from rest_framework.response import Response
 from .filters import TitleFilter
 from .paginators import CustomPagination
 from .permissions import (
@@ -18,10 +18,10 @@ from .permissions import (
 from .serializers import (
     ReviewSerializer, CommentSerializer, GenreSerializer,
     CategorySerializer, SignUpSerializer, UserSerializer, TitleReadSerializer,
-    TitleWriteSerializer
+    TitleWriteSerializer, TokenSerializer
 )
 from .utils import send_mail
-
+from rest_framework.decorators import permission_classes, api_view
 
 class CLDViewSet(mixins.CreateModelMixin,
                  mixins.ListModelMixin,
@@ -155,26 +155,20 @@ class SignUpViewSet(OnlyCreateViewSet):
         )
 
 
-class JWTUserViewSet(OnlyCreateViewSet):
-    queryset = User.objects.all()
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def get_jwt_token(request):
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data["username"]
+    )
 
-    def create(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        confirmation_code = request.data.get('confirmation_code')
-
-        if username is None or confirmation_code is None:
-            return response.Response(
-                'Incorrect input', status=status.HTTP_400_BAD_REQUEST
-            )
-
-        user = get_object_or_404(User, username=username)
-        if not default_token_generator.check_token(user, confirmation_code):
-            return response.Response(
-                'Incorrect pair: username - confirmation_code',
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    if default_token_generator.check_token(
+        user, serializer.validated_data["confirmation_code"]
+    ):
         token = AccessToken.for_user(user)
-        return response.Response(
-            {'token': str(token)},
-            status=status.HTTP_200_OK
-        )
+        return Response({"token": str(token)}, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

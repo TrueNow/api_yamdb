@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CategoryViewSet, SignUpViewSet, GenreViewSet, TitleViewSet,
-    CommentViewSet, ReviewViewSet, JWTUserViewSet, UserViewSet
+    CommentViewSet, ReviewViewSet, get_jwt_token, UserViewSet
 )
 
 app_name = 'api'
@@ -21,11 +21,11 @@ router_v1.register('genres', GenreViewSet, basename='genres')
 router_v1.register('categories', CategoryViewSet, basename='categories')
 router_v1.register('users', UserViewSet, basename='users')
 router_v1.register(
-    'auth/signup', SignUpViewSet, basename='signup'
+    'auth/signup', SignUpViewSet, basename='token'
 )
-router_v1.register(
-    'auth/token', JWTUserViewSet, basename='jwt_token'
-)
+# router_v1.register(
+#     'auth/token', get_jwt_token, basename='jwt_token'
+# )
 
 
 v1_auth_patterns = [
@@ -34,6 +34,6 @@ v1_auth_patterns = [
 ]
 
 urlpatterns = [
-    # path('v1/auth/', include(v1_auth_patterns)),
+    path('v1/auth/token/', get_jwt_token, name='token'),
     path('v1/', include(router_v1.urls)),
 ]
