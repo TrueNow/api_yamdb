@@ -8,7 +8,7 @@ from rest_framework import (
 )
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import (
-    Category, Genre, Review, Title, User,
+    Category, Genre, Review, Title,
 )
 
 from .filters import TitleFilter
