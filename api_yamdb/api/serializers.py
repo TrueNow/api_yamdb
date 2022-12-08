@@ -117,7 +117,7 @@ class SignUpSerializer(serializers.ModelSerializer):
             )
         return username
 
-class JWTUserSerializer(serializers.ModelSerializer):
+class JWTUserSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(required=True)
     username = serializers.CharField(required=True)
 

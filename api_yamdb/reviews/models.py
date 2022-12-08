@@ -23,7 +23,12 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ('-id',)
-
+    is_active = models.BooleanField(
+        ("Активный/неактивный."),
+        default=True,
+        help_text=("Статус текущего аккаунта - активирован или нет."),
+    )
+    
     @property
     def is_admin(self):
         return bool(self.role == ADMIN or self.is_staff)

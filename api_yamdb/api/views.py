@@ -3,13 +3,12 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
-    decorators, filters, mixins, permissions, response, status, viewsets
+    decorators, filters, mixins, permissions, response, status, viewsets, views
 )
-from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import (
     Category, Genre, Title, User, Review
 )
-
+from rest_framework_simplejwt.tokens import RefreshToken
 from .filters import TitleFilter
 from .paginators import CustomPagination
 from .permissions import (
@@ -18,7 +17,7 @@ from .permissions import (
 from .serializers import (
     ReviewSerializer, CommentSerializer, GenreSerializer,
     CategorySerializer, SignUpSerializer, UserSerializer, TitleReadSerializer,
-    TitleWriteSerializer
+    TitleWriteSerializer, JWTUserSerializer
 )
 from .utils import send_mail
 
@@ -155,26 +154,56 @@ class SignUpViewSet(OnlyCreateViewSet):
         )
 
 
-class JWTUserViewSet(OnlyCreateViewSet):
-    queryset = User.objects.all()
+# class JWTUserViewSet(OnlyCreateViewSet):
+#     queryset = User.objects.all()
+#     serializer_class = SignUpSerializer
 
-    def create(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        confirmation_code = request.data.get('confirmation_code')
+#     def create(self, request, *args, **kwargs):
+#         username = request.data.get('username')
+#         confirmation_code = request.data.get('confirmation_code')
 
-        if username is None or confirmation_code is None:
-            return response.Response(
-                'Incorrect input', status=status.HTTP_400_BAD_REQUEST
-            )
+#         if username is None or confirmation_code is None:
+#             return response.Response(
+#                 'Incorrect input', status=status.HTTP_400_BAD_REQUEST
+#             )
 
-        user = get_object_or_404(User, username=username)
-        if not default_token_generator.check_token(user, confirmation_code):
-            return response.Response(
-                'Incorrect pair: username - confirmation_code',
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        token = AccessToken.for_user(user)
+#         user = get_object_or_404(User, username=username)
+#         # if not default_token_generator.check_token(user, confirmation_code):
+#         #     return response.Response(
+#         #         'Incorrect pair: username - confirmation_code',
+#         #         status=status.HTTP_400_BAD_REQUEST
+#         #     )
+#         token = AccessToken.for_user(user)
+#         return response.Response(
+#             {'token': str(token)},
+#             status=status.HTTP_200_OK
+#         )
+
+class JWTUserView(views.APIView):
+    
+    def post(self, request):
+        # user = User.objects.filter(
+        #     username=request.data.get("username")
+        # ).first()
+        user = request.data.get('username')
+
+        if (
+            not user
+            or not user.is_active
+            or request.user.username != request.data["username"]
+        ):
+            serializer = JWTUserSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            if not user.is_active:
+                user.is_active = True
+                user.save()
+                auth = User.objects.filter(user=user).first()
+                if auth:
+                    auth.delete()
+
+        refresh = RefreshToken.for_user(user)
         return response.Response(
-            {'token': str(token)},
-            status=status.HTTP_200_OK
+            {"token": str(refresh.access_token)},
+            status=status.HTTP_201_CREATED,
         )
