@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
@@ -7,7 +8,7 @@ from rest_framework import (
 )
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import (
-    Category, Genre, Title, User, Review
+    Category, Genre, Review, Title, User,
 )
 
 from .filters import TitleFilter
@@ -21,6 +22,8 @@ from .serializers import (
     TitleWriteSerializer
 )
 from .utils import send_mail
+
+User = get_user_model()
 
 
 class CLDViewSet(mixins.CreateModelMixin,
