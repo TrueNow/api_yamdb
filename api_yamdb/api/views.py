@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -22,7 +23,7 @@ from .serializers import (
     CategorySerializer, SignUpSerializer, UserSerializer, TitleReadSerializer,
     TitleWriteSerializer, JWTUserSerializer
 )
-from .utils import send_mail
+from .utils import send_confirmation_code
 
 User = get_user_model()
 
