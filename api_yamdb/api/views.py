@@ -4,13 +4,14 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
-    decorators, filters, mixins, permissions, response, status, viewsets
+    decorators, filters, permissions, response, status, viewsets
 )
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import (
     Category, Genre, Review, Title,
 )
 
+from core.viewsets import CLDViewSet, OnlyCreateViewSet
 from .filters import TitleFilter
 from .paginators import CustomPagination
 from .permissions import (
@@ -24,13 +25,6 @@ from .serializers import (
 from .utils import send_mail
 
 User = get_user_model()
-
-
-class CLDViewSet(mixins.CreateModelMixin,
-                 mixins.ListModelMixin,
-                 mixins.DestroyModelMixin,
-                 viewsets.GenericViewSet):
-    pass
 
 
 class CategoryViewSet(CLDViewSet):
@@ -128,11 +122,6 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
         return response.Response(serializer.data)
-
-
-class OnlyCreateViewSet(mixins.CreateModelMixin,
-                        viewsets.GenericViewSet):
-    pass
 
 
 class SignUpViewSet(OnlyCreateViewSet):
