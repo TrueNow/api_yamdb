@@ -2,7 +2,7 @@ from datetime import datetime
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
 from reviews.models import (
-    Category, Comment, Genre, Review, Title, User
+    Category, Comment, Genre, Review, Title, User,  Auth
 )
 from django.shortcuts import get_object_or_404
 
@@ -126,9 +126,9 @@ class JWTUserSerializer(serializers.Serializer):
 
 
     def validate(self, attrs):
-        user = get_object_or_404(
-            User, user__username=self.initial_data.get("username")
+        auth  = get_object_or_404(
+            Auth, user__username=self.initial_data.get("username")
         )
-        if user.confirmation_code != attrs["confirmation_code"]:
+        if auth.confirmation_code != attrs["confirmation_code"]:
             raise serializers.ValidationError("Некорретный код подтверждения.")
         return attrs

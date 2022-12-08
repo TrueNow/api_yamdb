@@ -6,7 +6,7 @@ from rest_framework import (
     decorators, filters, mixins, permissions, response, status, viewsets, views
 )
 from reviews.models import (
-    Category, Genre, Title, User, Review
+    Category, Genre, Title, User, Review, Auth
 )
 from rest_framework_simplejwt.tokens import RefreshToken
 from .filters import TitleFilter
@@ -147,6 +147,9 @@ class SignUpViewSet(OnlyCreateViewSet):
 
         user = get_object_or_404(User, **data)
         confirmation_code = default_token_generator.make_token(user)
+        auth, _ = Auth.objects.get_or_create(user=user)
+        auth.confirmation_code = confirmation_code
+        auth.save()
         send_mail(user.email, confirmation_code)
         headers = self.get_success_headers(serializer.data)
         return response.Response(
@@ -182,10 +185,9 @@ class SignUpViewSet(OnlyCreateViewSet):
 class JWTUserView(views.APIView):
     
     def post(self, request):
-        # user = User.objects.filter(
-        #     username=request.data.get("username")
-        # ).first()
-        user = request.data.get('username')
+        user = User.objects.filter(
+            username=request.data.get("username")
+        ).first()
 
         if (
             not user
@@ -198,7 +200,7 @@ class JWTUserView(views.APIView):
             if not user.is_active:
                 user.is_active = True
                 user.save()
-                auth = User.objects.filter(user=user).first()
+                auth = User.objects.filter(username=user).first()
                 if auth:
                     auth.delete()
 

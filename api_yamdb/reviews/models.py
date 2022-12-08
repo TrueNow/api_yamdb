@@ -154,3 +154,20 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Комментарий {self.author} к {self.review}'
+
+class Auth(models.Model):
+    """Сохранение кодов подтверждения при регистрации."""
+
+    user = models.OneToOneField(
+        User,
+        verbose_name=("Пользователь"),
+        help_text=("Инстанс связанного юзера."),
+        on_delete=models.CASCADE,
+        unique=True,
+        related_name="auth",
+    )
+    confirmation_code = models.CharField(
+        max_length=128,
+        verbose_name=("Код подтверждения"),
+        help_text=("Код подтверждения с почты."),
+    )
