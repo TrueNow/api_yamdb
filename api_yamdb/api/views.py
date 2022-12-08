@@ -5,9 +5,8 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
-    decorators, filters, permissions, response, status, viewsets, mixins
+    decorators, filters, permissions, response, status, viewsets
 )
-from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import (
     Category, Genre, Review, Title,
 )
@@ -133,17 +132,16 @@ class SignUpViewSet(OnlyCreateViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+        user = get_object_or_404(User, **serializer.data)
+        confirmation_code = default_token_generator.make_token(user)
+        url = get_current_site(request)
+        send_confirmation_code(user.email, confirmation_code, url)
         headers = self.get_success_headers(serializer.data)
         return response.Response(
             serializer.data,
             status=status.HTTP_200_OK,
             headers=headers
         )
-
-    def perform_create(self, serializer):
-        user = serializer.save()
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(user.email, confirmation_code)
 
 
 class JWTUserViewSet(OnlyCreateViewSet):
